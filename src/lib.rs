@@ -1,4 +1,4 @@
-mod cdl_list;
+pub mod cdl_list;
 
 #[cfg(test)]
 mod tests {
