@@ -254,25 +254,11 @@ impl<T: Debug> CdlList<T> {
                 match prev {
                     LinkType::WeakLink(wl) => {
                         // fix links: 
-                        // 1. prev->next = head
-                        // 2. head->prev = prev
+                        // 1. head->prev = prev
+                        let head_ref = Rc::clone(&self.head.as_ref().unwrap());
+                        let mut head_ref_mut = head_ref.as_ref().borrow_mut();
 
-                        // Isolate these two steps to avoid invalid runtime borrowing
-                        {
-                            // Upgrade prev to strong link
-                            let strong_ref = Weak::upgrade(&wl).unwrap();
-                            let mut strong_ref_mut = strong_ref.as_ref().borrow_mut();
-                            let weak_head = Rc::downgrade(&self.head.as_ref().unwrap());
-
-                            strong_ref_mut.next = Some(LinkType::WeakLink(weak_head));
-                        }
-
-                        {
-                            let head_ref = Rc::clone(&self.head.as_ref().unwrap());
-                            let mut head_ref_mut = head_ref.as_ref().borrow_mut();
-
-                            head_ref_mut.prev = Some(LinkType::WeakLink(Weak::clone(&wl)));
-                        }
+                        head_ref_mut.prev = Some(LinkType::WeakLink(Weak::clone(&wl)));
 
                         // adjust tail pointer
                         let strong_ref = Weak::upgrade(&wl).unwrap();

@@ -17,31 +17,16 @@ mod tests {
         list.push_front(3);
         assert!(!list.is_empty());
 
-        // println!("TEST: {:?}", list);
-    }
-
-    #[test]
-    fn test_two_fronts() {
         let mut list : CdlList<u32> = CdlList::new();
-        list.push_front(3);
+        list.push_back(3);
         assert!(!list.is_empty());
-
-        // println!("TEST 1: {:?}", list);
-
-        list.push_front(4);
-        assert!(!list.is_empty());
-
-        // println!("TEST 2: {:?}", list);
-
-        list.push_back(6);
-
-        // println!("TEST 3: {:?}", list);
     }
 
     #[test]
     fn test_empty_pop() {
         let mut list : CdlList<u32> = CdlList::new();
         assert_eq!(list.pop_front(), None);
+        assert_eq!(list.pop_back(), None);
     }
 
     #[test]
@@ -57,8 +42,6 @@ mod tests {
 
     #[test]
     fn test_pop_front() {
-        println!("\n\n\nTEST POP FRONT\n\n\n");
-
         let mut list : CdlList<u32> = CdlList::new();
         list.push_back(4);
         list.push_back(8);
@@ -70,36 +53,30 @@ mod tests {
         let val = list.pop_front();
         assert!(val.is_some());
         assert_eq!(val, Some(4));
-        // println!("VAL: {:?}", val);
         assert_eq!(list.size(), 5);
 
         let val = list.pop_front();
         assert!(val.is_some());
-        // println!("VAL: {:?}", val);
         assert_eq!(val, Some(8));
         assert_eq!(list.size(), 4);
 
         let val = list.pop_front();
         assert!(val.is_some());
-        // println!("VAL: {:?}", val);
         assert_eq!(val, Some(15));
         assert_eq!(list.size(), 3);
 
         let val = list.pop_front();
         assert!(val.is_some());
-        // println!("VAL: {:?}", val);
         assert_eq!(val, Some(16));
         assert_eq!(list.size(), 2);
 
         let val = list.pop_front();
         assert!(val.is_some());
-        // println!("VAL: {:?}", val);
         assert_eq!(val, Some(23));
         assert_eq!(list.size(), 1);
 
         let val = list.pop_front();
         assert!(val.is_some());
-        // println!("VAL: {:?}", val);
         assert_eq!(val, Some(42));
         assert!(list.is_empty());
     }
@@ -117,37 +94,66 @@ mod tests {
         let val = list.pop_back();
         assert!(val.is_some());
         assert_eq!(val, Some(4));
-        println!("VAL 2: {:?}", val);
         assert_eq!(list.size(), 5);
 
         let val = list.pop_back();
         assert!(val.is_some());
         assert_eq!(val, Some(8));
-        println!("VAL 2: {:?}", val);
         assert_eq!(list.size(), 4);
 
         let val = list.pop_back();
         assert!(val.is_some());
         assert_eq!(val, Some(15));
-        println!("VAL 2: {:?}", val);
         assert_eq!(list.size(), 3);
 
         let val = list.pop_back();
         assert!(val.is_some());
         assert_eq!(val, Some(16));
-        println!("VAL 2: {:?}", val);
         assert_eq!(list.size(), 2);
 
         let val = list.pop_back();
         assert!(val.is_some());
         assert_eq!(val, Some(23));
-        println!("VAL 2: {:?}", val);
         assert_eq!(list.size(), 1);
 
         let val = list.pop_back();
         assert!(val.is_some());
         assert_eq!(val, Some(42));
-        println!("VAL 2: {:?}", val);
         assert_eq!(list.size(), 0);
+    }
+
+    #[test]
+    fn push_and_pop() {
+        // Alternate between pushing and popping from different ends of 
+        // the list to see if nodes are correctly linked after each call
+        let mut list : CdlList<i32> = CdlList::new();
+
+        list.push_front(1);
+        assert_eq!(list.pop_front(), Some(1));
+        assert_eq!(list.pop_front(), None);
+
+        list.push_back(2);
+        list.push_front(3);
+        list.push_back(4);
+
+        // List = 3 <=> 2 <=> 4
+        assert_eq!(list.pop_back(), Some(4));
+        assert_eq!(list.pop_front(), Some(3));
+        
+        list.push_front(5);
+        list.push_back(6);
+        list.push_front(7);
+        list.push_back(8);
+        list.push_front(9);
+
+        // List = 9 <=> 7 <=> 5 <=> 2 <=> 6 <=> 8
+        assert_eq!(list.pop_back(), Some(8));
+        assert_eq!(list.pop_back(), Some(6));
+
+        assert_eq!(list.pop_front(), Some(9));
+        assert_eq!(list.pop_front(), Some(7));
+
+        assert_eq!(list.pop_back(), Some(2));
+        assert_eq!(list.pop_back(), Some(5));
     }
 }
