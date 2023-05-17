@@ -271,4 +271,28 @@ impl<T: Debug> CdlList<T> {
             }
         }
     }
+
+    pub fn peek_front(&self) -> Option<Ref<T>> {
+        self.peek(true)
+    }
+
+    pub fn peek_back(&self) -> Option<Ref<T>> {
+        self.peek(false)
+    }
+
+    fn peek(&self, peek_front: bool) -> Option<Ref<T>> {
+        if self.is_empty() {
+            return None;
+        }
+
+        if peek_front {
+            return self.head.as_ref().map(|node| {
+                Ref::map(node.borrow(), |node| &node.data)
+            });
+        } else {
+            return self.tail.as_ref().map(|node| {
+                Ref::map(node.borrow(), |node| &node.data)
+            });
+        }
+    }
 }

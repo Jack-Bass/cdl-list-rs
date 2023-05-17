@@ -35,7 +35,6 @@ mod tests {
         list.push_front(42);
         let val = list.pop_front();
 
-        assert!(val.is_some());
         assert_eq!(val, Some(42));
         assert!(list.is_empty());
     }
@@ -51,32 +50,26 @@ mod tests {
         list.push_back(42);
 
         let val = list.pop_front();
-        assert!(val.is_some());
         assert_eq!(val, Some(4));
         assert_eq!(list.size(), 5);
 
-        let val = list.pop_front();
-        assert!(val.is_some());
+        let val = list.pop_front();        
         assert_eq!(val, Some(8));
         assert_eq!(list.size(), 4);
 
-        let val = list.pop_front();
-        assert!(val.is_some());
+        let val = list.pop_front();        
         assert_eq!(val, Some(15));
         assert_eq!(list.size(), 3);
 
-        let val = list.pop_front();
-        assert!(val.is_some());
+        let val = list.pop_front();        
         assert_eq!(val, Some(16));
         assert_eq!(list.size(), 2);
 
-        let val = list.pop_front();
-        assert!(val.is_some());
+        let val = list.pop_front();        
         assert_eq!(val, Some(23));
         assert_eq!(list.size(), 1);
 
-        let val = list.pop_front();
-        assert!(val.is_some());
+        let val = list.pop_front();        
         assert_eq!(val, Some(42));
         assert!(list.is_empty());
     }
@@ -91,46 +84,40 @@ mod tests {
         list.push_front(23);
         list.push_front(42);
 
-        let val = list.pop_back();
-        assert!(val.is_some());
+        let val = list.pop_back();        
         assert_eq!(val, Some(4));
         assert_eq!(list.size(), 5);
 
-        let val = list.pop_back();
-        assert!(val.is_some());
+        let val = list.pop_back();        
         assert_eq!(val, Some(8));
         assert_eq!(list.size(), 4);
 
-        let val = list.pop_back();
-        assert!(val.is_some());
+        let val = list.pop_back();        
         assert_eq!(val, Some(15));
         assert_eq!(list.size(), 3);
 
-        let val = list.pop_back();
-        assert!(val.is_some());
+        let val = list.pop_back();        
         assert_eq!(val, Some(16));
         assert_eq!(list.size(), 2);
 
-        let val = list.pop_back();
-        assert!(val.is_some());
+        let val = list.pop_back();        
         assert_eq!(val, Some(23));
         assert_eq!(list.size(), 1);
 
-        let val = list.pop_back();
-        assert!(val.is_some());
+        let val = list.pop_back();        
         assert_eq!(val, Some(42));
         assert_eq!(list.size(), 0);
     }
 
     #[test]
-    fn push_and_pop() {
+    fn test_push_and_pop() {
         // Alternate between pushing and popping from different ends of 
         // the list to see if nodes are correctly linked after each call
         let mut list : CdlList<i32> = CdlList::new();
 
         list.push_front(1);
         assert_eq!(list.pop_front(), Some(1));
-        assert_eq!(list.pop_front(), None);
+        assert!(list.pop_front().is_none());
 
         list.push_back(2);
         list.push_front(3);
@@ -155,5 +142,44 @@ mod tests {
 
         assert_eq!(list.pop_back(), Some(2));
         assert_eq!(list.pop_back(), Some(5));
+    }
+
+    #[test]
+    fn test_peek_empty() {
+        let list : CdlList<i32> = CdlList::new();
+
+        assert!(list.peek_front().is_none());
+        assert!(list.peek_back().is_none());
+    }
+
+    #[test]
+    fn test_peek_one() {
+        let mut list : CdlList<i32> = CdlList::new();
+        list.push_front(1);
+
+        let val = *list.peek_front().unwrap();
+        assert_eq!(val, 1);
+    }
+
+    #[test]
+    fn test_peek_front() {
+        let mut list : CdlList<i32> = CdlList::new();
+        list.push_front(3);
+        list.push_front(2);
+        list.push_front(1);
+
+        let val = *list.peek_front().unwrap();
+        assert_eq!(val, 1);
+    }
+
+    #[test]
+    fn test_peek_back() {
+        let mut list : CdlList<i32> = CdlList::new();
+        list.push_back(1);
+        list.push_back(2);
+        list.push_back(3);
+
+        let val = *list.peek_back().unwrap();
+        assert_eq!(val, 3);
     }
 }
