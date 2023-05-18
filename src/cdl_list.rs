@@ -34,6 +34,13 @@ impl<T: Debug> Node<T> {
     }
 }
 
+impl<T: Debug> std::fmt::Display for Node<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let temp = format!("{:?}", &self.data);
+        f.write_str(&temp)
+    }
+}
+
 #[derive(Debug)]
 pub struct CdlList<T: Debug> {
     head: Option<Rc<RefCell<Node<T>>>>,
@@ -41,10 +48,9 @@ pub struct CdlList<T: Debug> {
     size: usize
 }
 
-impl<T: Debug> std::fmt::Display for Node<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let temp = format!("{:?}", &self.data);
-        f.write_str(&temp)
+impl<T: Debug> std::ops::Drop for CdlList<T> {
+    fn drop(&mut self) {
+        while self.pop_front().is_some() {}
     }
 }
 
@@ -285,6 +291,7 @@ impl<T: Debug> CdlList<T> {
             return None;
         }
 
+        // Graciously borrowed from the "Too Many Linked Lists" book
         if peek_front {
             return self.head.as_ref().map(|node| {
                 Ref::map(node.borrow(), |node| &node.data)
