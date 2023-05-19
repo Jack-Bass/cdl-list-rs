@@ -1,4 +1,24 @@
-//
+//! A circular doubly linked list is a series of nodes where each node has a reference to 
+//! the next and previous node in the list.  By being circular, the head and tail of 
+//! the list point to each other, making the graph cyclic.  Below is an example of a small list: 
+//! 
+//! ```text
+//!       head                tail
+//!        │                   │
+//!        V                   V
+//! ┌┄┄┄>┌───┐ ──> ┌───┐ ──> ┌───┐ ┄┄┄┐
+//! ┆    │ 1 │     │ 2 │     │ 3 │    ┆
+//! ┆  ┌ └───┘ <┄┄ └───┘ <┄┄ └───┘ <┐ ┆
+//! ┆  └┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘ ┆
+//! └┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+//! ```
+//! 
+//! This implementation makes use of `Rc<T>` and `RefCell<T>`.  To avoid creating 
+//! reference cycles, I make the distinction between strong links in the graph 
+//! (represented above with a solid line) and weak links (represented with a dashed 
+//! line).  Generally, the next pointer is always a strong link, except for tail->next, 
+//! which is always a weak pointer to the head, so no reference cycle is created.  For 
+//! more on `Rc<T>`, `RefCell<T>`, and reference cycles, see [the Rust book](https://doc.rust-lang.org/book/ch15-04-rc.html).
 
 use std::{cell::{RefCell, Ref}, rc::{Rc, Weak}, fmt::{Debug}};
 
@@ -41,6 +61,7 @@ impl<T: Debug> std::fmt::Display for Node<T> {
     }
 }
 
+/// A circular doubly linked list as defined in the [module-level documentation](`crate::cdl_list`).
 #[derive(Debug)]
 pub struct CdlList<T: Debug> {
     head: Option<Rc<RefCell<Node<T>>>>,
@@ -55,22 +76,91 @@ impl<T: Debug> std::ops::Drop for CdlList<T> {
 }
 
 impl<T: Debug> CdlList<T> {
+    /// Returns a new CdlList without any values.  List should be defined as mutable 
+    /// to add elements to it.
+    /// 
+    /// ```rust
+    /// use cdl_list_rs::cdl_list::CdlList;
+    /// 
+    /// let mut list : CdlList<u32> = CdlList::new();
+    /// ```
     pub fn new() -> CdlList<T> {
         CdlList { head: None, tail: None, size: 0 }
     }
 
+    /// Returns whether or not the list is empty.
+    /// 
+    /// ```rust
+    /// # use cdl_list_rs::cdl_list::CdlList;
+    /// let list : CdlList<u32> = CdlList::new();
+    /// assert!(list.is_empty());
+    /// ```
     pub fn is_empty(&self) -> bool {
         self.size == 0
     }
 
+    /// Returns how many elements are in the list.
+    /// 
+    /// ```rust
+    /// # use cdl_list_rs::cdl_list::CdlList;
+    /// let mut list : CdlList<u32> = CdlList::new();
+    /// assert_eq!(list.size(), 0);
+    /// 
+    /// list.push_back(1);
+    /// assert_eq!(list.size(), 1);
+    /// 
+    /// list.push_back(2);
+    /// assert_eq!(list.size(), 2);
+    /// 
+    /// list.pop_back();
+    /// assert_eq!(list.size(), 1);
+    /// ```
     pub fn size(&self) -> usize {
         self.size
     }
 
+    /// Pushes an element to the front of the list, making it the new head and 
+    /// incrementing the size of the list.
+    /// 
+    /// ```rust
+    /// # use cdl_list_rs::cdl_list::CdlList;
+    /// let mut list : CdlList<u32> = CdlList::new();
+    /// 
+    /// list.push_front(3); // list = ╔══> 3 <══╗
+    ///                     //        ╚═════════╝
+    /// assert_eq!(list.size(), 1);
+    /// 
+    /// list.push_front(2); // list = ╔══> 2 <══> 3 <══╗
+    ///                     //        ╚════════════════╝
+    /// assert_eq!(list.size(), 2);
+    /// 
+    /// list.push_front(1); // list = ╔══> 1 <══> 2 <══> 3 <══╗
+    ///                     //        ╚═══════════════════════╝
+    /// assert_eq!(list.size(), 3);
+    /// ```
     pub fn push_front(&mut self, t: T) {
         self.push(t, true);
     }
 
+    /// Pushes an element to the back of the list, making it the new tail and 
+    /// incrementing the size of the list.
+    /// 
+    /// ```rust
+    /// # use cdl_list_rs::cdl_list::CdlList;
+    /// let mut list : CdlList<u32> = CdlList::new();
+    /// 
+    /// list.push_back(1);  // list = ╔══> 1 <══╗
+    ///                     //        ╚═════════╝
+    /// assert_eq!(list.size(), 1);
+    /// 
+    /// list.push_back(2);  // list = ╔══> 1 <══> 2 <══╗
+    ///                     //        ╚════════════════╝
+    /// assert_eq!(list.size(), 2);
+    /// 
+    /// list.push_back(3);  // list = ╔══> 1 <══> 2 <══> 3 <══╗
+    ///                     //        ╚═══════════════════════╝
+    /// assert_eq!(list.size(), 3);
+    /// ```
     pub fn push_back(&mut self, t: T) {
         self.push(t, false);
     }
@@ -150,10 +240,66 @@ impl<T: Debug> CdlList<T> {
         self.size += 1;
     }
 
+    /// Removes an element N from the front of the list, making the new head `N->next` and 
+    /// decrementing the size of the list.  Returns the popped element if the list is 
+    /// not empty.
+    /// 
+    /// ```rust
+    /// # use cdl_list_rs::cdl_list::CdlList;
+    /// let mut list : CdlList<u32> = CdlList::new();
+    /// 
+    /// list.push_front(3);
+    /// list.push_front(2);
+    /// list.push_front(1); // list = ╔══> 1 <══> 2 <══> 3 <══╗
+    ///                     //        ╚═══════════════════════╝
+    /// assert_eq!(list.size(), 3);
+    /// 
+    /// let v = list.pop_front(); // list = ╔══> 2 <══> 3 <══╗
+    ///                           //        ╚════════════════╝
+    /// assert_eq!(v, Some(1));
+    /// assert_eq!(list.size(), 2);
+    /// ```
+    /// 
+    /// If the list is empty, then `None` is returned.
+    /// 
+    /// ```rust
+    /// # use cdl_list_rs::cdl_list::CdlList;
+    /// let mut list : CdlList<u32> = CdlList::new();
+    /// let v = list.pop_front();
+    /// assert!(v.is_none());
+    /// ```
     pub fn pop_front(&mut self) -> Option<T> {
         self.pop(true)
     }
 
+    /// Removes an element N from the back of the list, making the new tail `N->prev` and 
+    /// decrementing the size of the list.  Returns the popped element if the list is 
+    /// not empty.
+    /// 
+    /// ```rust
+    /// # use cdl_list_rs::cdl_list::CdlList;
+    /// let mut list : CdlList<u32> = CdlList::new();
+    /// 
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// list.push_back(3);  // list = ╔══> 1 <══> 2 <══> 3 <══╗
+    ///                     //        ╚═══════════════════════╝
+    /// assert_eq!(list.size(), 3);
+    /// 
+    /// let v = list.pop_back();  // list = ╔══> 1 <══> 2 <══╗
+    ///                           //        ╚════════════════╝
+    /// assert_eq!(v, Some(3));
+    /// assert_eq!(list.size(), 2);
+    /// ```
+    /// 
+    /// If the list is empty, then `None` is returned.
+    /// 
+    /// ```rust
+    /// # use cdl_list_rs::cdl_list::CdlList;
+    /// let mut list : CdlList<u32> = CdlList::new();
+    /// let v = list.pop_back();
+    /// assert!(v.is_none());
+    /// ```
     pub fn pop_back(&mut self) -> Option<T> {
         self.pop(false)
     }
@@ -278,10 +424,80 @@ impl<T: Debug> CdlList<T> {
         }
     }
 
+    /// Optionally returns a [`std::cell::Ref<T>`], which is an immutable reference to a 
+    /// value inside a [`std::cell::RefCell<T>`].  In this case, this immutably borrows 
+    /// the head node's data.  Thus, it cannot change the list's data.
+    /// 
+    /// ```rust
+    /// # use cdl_list_rs::cdl_list::CdlList;
+    /// let mut list : CdlList<u32> = CdlList::new();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// 
+    /// let h = *list.peek_front().unwrap();
+    /// assert_eq!(h, 1);
+    /// ```
+    /// 
+    /// Note that we can only dereference the Ref here is because u32 implements the Copy 
+    /// trait.  When using a type that does not implement Copy, you would have to 
+    /// use the Clone trait instead.
+    /// 
+    /// ```rust
+    /// # use cdl_list_rs::cdl_list::CdlList;
+    /// # use std::cell::Ref;
+    /// let mut list : CdlList<String> = CdlList::new();
+    /// list.push_front(String::from("hello"));
+    /// 
+    /// let h : Ref<String> = list.peek_front().unwrap();
+    /// assert_eq!(h.clone(), String::from("hello"));
+    /// ```
+    /// 
+    /// Of course, if the list is empty, there is nothing to peek!
+    /// 
+    /// ```rust
+    /// # use cdl_list_rs::cdl_list::CdlList;
+    /// let list : CdlList<String> = CdlList::new();
+    /// assert!(list.peek_front().is_none());
+    /// ```
     pub fn peek_front(&self) -> Option<Ref<T>> {
         self.peek(true)
     }
 
+    /// Optionally returns a [`std::cell::Ref<T>`], which is an immutable reference to a 
+    /// value inside a [`std::cell::RefCell<T>`].  In this case, this immutably borrows 
+    /// the tail node's data.  Thus, it cannot change the list's data.
+    /// 
+    /// ```rust
+    /// # use cdl_list_rs::cdl_list::CdlList;
+    /// let mut list : CdlList<u32> = CdlList::new();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// 
+    /// let t = *list.peek_back().unwrap();
+    /// assert_eq!(t, 2);
+    /// ```
+    /// 
+    /// Note that we can only dereference the Ref here is because u32 implements the Copy 
+    /// trait.  When using a type that does not implement Copy, you would have to 
+    /// use the Clone trait instead.
+    /// 
+    /// ```rust
+    /// # use cdl_list_rs::cdl_list::CdlList;
+    /// # use std::cell::Ref;
+    /// let mut list : CdlList<String> = CdlList::new();
+    /// list.push_back(String::from("hello"));
+    /// 
+    /// let t : Ref<String> = list.peek_back().unwrap();
+    /// assert_eq!(t.clone(), String::from("hello"));
+    /// ```
+    /// 
+    /// Of course, if the list is empty, there is nothing to peek!
+    /// 
+    /// ```rust
+    /// # use cdl_list_rs::cdl_list::CdlList;
+    /// let list : CdlList<String> = CdlList::new();
+    /// assert!(list.peek_back().is_none());
+    /// ```
     pub fn peek_back(&self) -> Option<Ref<T>> {
         self.peek(false)
     }
