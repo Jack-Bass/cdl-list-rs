@@ -2,6 +2,10 @@
 name = "cdl-list-rs"
 version = "0.1.0"
 edition = "2021"
+license-file = "LICENSE"
+description = "A circular doubly linked list implementation using Rc<T> and RefCell<T>"
+repository = "https://github.com/Jack-Bass/cdl-list-rs"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
