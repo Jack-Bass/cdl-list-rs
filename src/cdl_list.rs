@@ -518,4 +518,89 @@ impl<T: Debug> CdlList<T> {
             });
         }
     }
+
+    /// Inserts an element in the specified position, adjusting the existing 
+    /// links and incrementing the size of the list.  Insertion point starts 
+    /// from 0, so `insert_at(0, T)` inserts `T` at the start of the list, 
+    /// `insert_at(3, T)` inserts `T` as the fourth element in the list, etc.
+    /// 
+    /// ```rust
+    /// # use cdl_list_rs::cdl_list::CdlList;
+    /// let mut list : CdlList<u32> = CdlList::new();
+    /// 
+    /// list.push_back(1); // index 0
+    /// list.push_back(2); // index 1
+    /// list.push_back(4); // index 2
+    ///                    // list = ╔══> 1 <══> 2 <══> 4 <══╗
+    ///                    //        ╚═══════════════════════╝
+    /// 
+    /// // insert 3 at index 2
+    /// list.insert_at(2, 3); // list = ╔══> 1 <══> 2 <══> 3 <══> 4 <══╗
+    ///                       //        ╚══════════════════════════════╝
+    /// 
+    /// assert_eq!(list.size(), 4);
+    /// assert_eq!(list.pop_back().unwrap(), 4);
+    /// assert_eq!(list.pop_back().unwrap(), 3);
+    /// ```
+    pub fn insert_at(&mut self, index: usize, val : T) {
+        if index == 0 {
+            self.push_front(val);
+            return;
+        }
+        if index == self.size() {
+            self.push_back(val);
+            return;
+        }
+        if index > self.size() {
+            //Should probably throw an error
+            return;
+        }
+
+        //create new node
+        let n = Node::new(val);
+        let ref_n = Rc::new(RefCell::new(n));
+        let mut ref_n_mut = ref_n.as_ref().borrow_mut();
+
+        //TODO: change starting point based on insertion point
+        //      i.e. if insertion point at back, shouldn't start iterating at head
+        let mut node_ref = Rc::clone(&self.head.as_ref().unwrap());
+        let mut count: usize = 0;
+
+        //get the node before insertion point
+        while count < index-1 {
+            let next = node_ref.borrow().next.clone().unwrap();
+            match next {
+                LinkType::StrongLink(sl) => {
+                    node_ref = sl;
+                }, 
+                _ => unreachable!("All intermediary nodes have strong links to next.")
+            }
+
+            count += 1;
+        }
+
+        //need to modify node_ref->next
+        let node_ref_next = node_ref.borrow().next.clone().unwrap();
+
+        //by design, node_ref->next = n, and node_ref_next->prev = n
+        match node_ref_next {
+            // since n not inserted at head or tail, node_ref_next is always strong
+            LinkType::StrongLink(sl) => {
+                let mut node_ref_mut = node_ref.as_ref().borrow_mut();
+                let mut node_ref_next_mut = sl.as_ref().borrow_mut();
+
+                // change old links
+                node_ref_mut.next = Some(LinkType::StrongLink(Rc::clone(&ref_n)));
+                node_ref_next_mut.prev = Some(LinkType::WeakLink(Rc::downgrade(&ref_n)));
+
+                // set new links
+                ref_n_mut.next = Some(LinkType::StrongLink(Rc::clone(&sl)));
+                ref_n_mut.prev = Some(LinkType::WeakLink(Rc::downgrade(&node_ref)));
+            }, 
+            _ => unreachable!("All intermediary nodes have strong links to next.")
+        }
+
+        // adjust size of the list
+        self.size += 1;
+    }
 }

@@ -262,7 +262,7 @@ mod tests {
 
     #[test]
     fn test_size() {
-        let mut list : CdlList<u32> = CdlList::new(); 
+        let mut list : CdlList<u32> = CdlList::new();
         assert_eq!(list.size(), 0);
         
         list.push_back(1);
@@ -273,5 +273,23 @@ mod tests {
         
         list.pop_back();
         assert_eq!(list.size(), 1);
+    }
+
+    #[test]
+    fn test_insert_at() {
+        let mut list : CdlList<u32> = CdlList::new();
+        list.push_back(1);
+        list.push_back(2);
+        list.push_back(4);
+
+        list.insert_at(2, 3);
+
+        assert_eq!(list.size(), 4);
+        assert_eq!(list.pop_front().unwrap(), 1);
+        assert_eq!(list.pop_front().unwrap(), 2);
+        assert_eq!(list.pop_front().unwrap(), 3);
+        assert_eq!(list.pop_front().unwrap(), 4);
+
+        //TODO: Insert more tests here
     }
 }
