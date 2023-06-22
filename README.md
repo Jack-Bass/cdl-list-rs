@@ -7,15 +7,15 @@ runtime panics of its own, but those should not be present currently.
 
 ## Usage
 
-Create a list using [`cdl_list::CdlList::new()`]: 
+Create a list using [`cdl_list::CdlList::new()`](https://docs.rs/cdl-list-rs/0.1.0/cdl_list_rs/cdl_list/struct.CdlList.html#method.new): 
 
 ```rust
 let mut list : CdlList<u32> = CdlList::new();
 ```
 
 The list must be mutable to add any elements to it.  Elements may be added to 
-the head or tail of the list using [`cdl_list::CdlList::push_front()`] or 
-[`cdl_list::CdlList::push_back()`].
+the head or tail of the list using [`cdl_list::CdlList::push_front()`](https://docs.rs/cdl-list-rs/0.1.0/cdl_list_rs/cdl_list/struct.CdlList.html#method.push_front) or 
+[`cdl_list::CdlList::push_back()`](https://docs.rs/cdl-list-rs/0.1.0/cdl_list_rs/cdl_list/struct.CdlList.html#method.push_back).
 
 ```rust
 // Where A <══> B = A ⇄ B
@@ -30,7 +30,7 @@ list.push_front(3); // list = ╔══> 3 <══> 1 <══> 2 <══╗
 ```
 
 To see which item is at the head or tail of the list, use 
-[`cdl_list::CdlList::peek_front()`] or [`cdl_list::CdlList::peek_back()`].  This optionally returns a `Ref<T>`, which can be dereferenced using \* or `clone()`.  This 
+[`cdl_list::CdlList::peek_front()`](https://docs.rs/cdl-list-rs/0.1.0/cdl_list_rs/cdl_list/struct.CdlList.html#method.peek_front) or [`cdl_list::CdlList::peek_back()`](https://docs.rs/cdl-list-rs/0.1.0/cdl_list_rs/cdl_list/struct.CdlList.html#method.peek_back).  This optionally returns a `Ref<T>`, which can be dereferenced using \* or `clone()`.  This 
 creates a copy of the value and cannot modify the list's contents!
 
 ```rust
@@ -39,7 +39,7 @@ let tail_val = list.peek_back().unwrap().clone();  // tail_val = 2
 ```
 
 To remove an item from the list, you can currently use 
-[`cdl_list::CdlList::pop_front()`] or [`cdl_list::CdlList::pop_back()`].  This 
+[`cdl_list::CdlList::pop_front()`](https://docs.rs/cdl-list-rs/0.1.0/cdl_list_rs/cdl_list/struct.CdlList.html#method.pop_front) or [`cdl_list::CdlList::pop_back()`](https://docs.rs/cdl-list-rs/0.1.0/cdl_list_rs/cdl_list/struct.CdlList.html#method.pop_back).  This 
 gives you ownership of the value at the head or tail of the list respectively and 
 removes it from the list, adjusting the list's pointers appropriately.  Like 
 peek, this returns `None` if the list is empty.
