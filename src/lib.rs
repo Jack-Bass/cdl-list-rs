@@ -292,4 +292,29 @@ mod tests {
 
         //TODO: Insert more tests here
     }
+
+    #[test]
+    fn test_remove_at() {
+        // TODO: test bounds
+
+        let mut list : CdlList<u32> = CdlList::new();
+        list.push_back(1);
+        list.push_back(2);
+        list.push_back(3);
+        list.push_back(4);
+        list.push_back(5);
+        list.push_back(6);
+        list.push_back(7);
+        list.push_back(8);
+
+        assert_eq!(list.remove_at(list.size()-1), Some(8));
+        assert_eq!(list.remove_at(0), Some(1));
+        assert_eq!(list.remove_at(list.size()-1), Some(7));
+
+        // List: 2, 3, 4, 5, 6
+
+        assert_eq!(list.remove_at(2), Some(4));
+
+        // TODO: More tests
+    }
 }

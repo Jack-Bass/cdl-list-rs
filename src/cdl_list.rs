@@ -596,22 +596,44 @@ impl<T: Debug> CdlList<T> {
         let ref_n = Rc::new(RefCell::new(n));
         let mut ref_n_mut = ref_n.as_ref().borrow_mut();
 
-        //TODO: change starting point based on insertion point
+        // Starting point is based on where insertion point is
         //      i.e. if insertion point at back, shouldn't start iterating at head
-        let mut node_ref = Rc::clone(&self.head.as_ref().unwrap());
-        let mut count: usize = 0;
+        let mut node_ref : Rc<RefCell<Node<T>>>;
+        let mut count: usize;
+        let mid : usize = self.size/2;
 
         //get the node before insertion point
-        while count < index-1 {
-            let next = node_ref.borrow().next.clone().unwrap();
-            match next {
-                LinkType::StrongLink(sl) => {
-                    node_ref = sl;
-                }, 
-                _ => unreachable!("All intermediary nodes have strong links to next.")
-            }
+        if index <= mid {
+            node_ref = Rc::clone(&self.head.as_ref().unwrap());
 
-            count += 1;
+            count = 0;
+            while count < index-1 {
+                let next = node_ref.borrow().next.clone().unwrap();
+                match next {
+                    LinkType::StrongLink(sl) => {
+                        node_ref = sl;
+                    }, 
+                    _ => unreachable!("All intermediary nodes have strong links to next.")
+                }
+    
+                count += 1;
+            }
+        } else {
+            // traverse list in reverse
+            node_ref = Rc::clone(&self.tail.as_ref().unwrap());
+            count = self.size-1;
+
+            while count >= index {
+                let prev = node_ref.borrow().prev.clone().unwrap();
+                match prev {
+                    LinkType::WeakLink(wl) => {
+                        node_ref = Weak::upgrade(&wl).unwrap();
+                    }, 
+                    _ => unreachable!("Previous links are always weak.")
+                }
+
+                count -= 1;
+            }
         }
 
         //need to modify node_ref->next
@@ -637,5 +659,96 @@ impl<T: Debug> CdlList<T> {
 
         // adjust size of the list
         self.size += 1;
+    }
+
+    /// TODO: Docs
+    pub fn remove_at(&mut self, index: usize) -> Option<T> {
+        if index == 0 {
+            return self.pop_front();
+        }
+        if index == self.size()-1 {
+            return self.pop_back();
+        }
+        if index >= self.size() {
+            //Should probably throw an error
+            return None;
+        }
+
+        // Starting point is based on where deletion point is
+        //      i.e. if deletion point at back, shouldn't start iterating at head
+        let mut node_ref : Rc<RefCell<Node<T>>>;
+        let mut count: usize;
+        let mid : usize = self.size/2;
+
+        //get the node before deletion point
+        if index <= mid {
+            node_ref = Rc::clone(&self.head.as_ref().unwrap());
+
+            count = 0;
+            while count < index-1 {
+                let next = node_ref.borrow().next.clone().unwrap();
+                match next {
+                    LinkType::StrongLink(sl) => {
+                        node_ref = sl;
+                    }, 
+                    _ => unreachable!("All intermediary nodes have strong links to next.")
+                }
+    
+                count += 1;
+            }
+        } else {
+            // traverse list in reverse
+            node_ref = Rc::clone(&self.tail.as_ref().unwrap());
+            count = self.size-1;
+
+            while count >= index {
+                let prev = node_ref.borrow().prev.clone().unwrap();
+                match prev {
+                    LinkType::WeakLink(wl) => {
+                        node_ref = Weak::upgrade(&wl).unwrap();
+                    }, 
+                    _ => unreachable!("Previous links are always weak.")
+                }
+
+                count -= 1;
+            }
+        }
+
+        // adjust size of the list
+        self.size -= 1;
+
+        //need to set node_ref->next to node_ref->next->next
+        let node_ref_next = node_ref.borrow().next.clone().unwrap();
+        match node_ref_next {
+            LinkType::StrongLink(sl) => {
+                let node_ref_next_next = sl.borrow().next.clone().unwrap();
+
+                match node_ref_next_next {
+                    LinkType::StrongLink(sl_next) => {
+                        let mut node_ref_mut = node_ref.as_ref().borrow_mut();
+                        let mut node_ref_next_mut = sl_next.as_ref().borrow_mut();
+
+                        // adjust links
+                        node_ref_mut.next = Some(LinkType::StrongLink(Rc::clone(&sl_next)));
+                        node_ref_next_mut.prev = Some(LinkType::WeakLink(Rc::downgrade(&node_ref)));
+                    }, 
+                    _ => unreachable!("All intermediary nodes have strong links to next.")
+                }
+
+                //break old links
+                {
+                    let sl2 = Rc::clone(&sl);
+                    let mut sl_ref_mut = sl2.as_ref().borrow_mut();
+                    sl_ref_mut.next = None;
+                    sl_ref_mut.prev = None;
+                }
+
+                //should be able to access inner data now
+                let val = Rc::try_unwrap(sl).ok().unwrap().into_inner().data;
+
+                return Some(val);
+            }, 
+            _ => unreachable!("All intermediary nodes have strong links to next.")
+        }
     }
 }
