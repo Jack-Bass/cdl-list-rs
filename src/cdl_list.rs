@@ -20,7 +20,7 @@
 //! which is always a weak pointer to the head, so no reference cycle is created.  For 
 //! more on `Rc<T>`, `RefCell<T>`, and reference cycles, see [the Rust book](https://doc.rust-lang.org/book/ch15-04-rc.html).
 
-use std::{cell::{RefCell, Ref}, rc::{Rc, Weak}, fmt::{Debug}};
+use std::{cell::{RefCell, Ref}, rc::{Rc, Weak}, fmt::{Debug, self}};
 
 #[derive(Debug)]
 enum LinkType<T> {
@@ -72,6 +72,41 @@ pub struct CdlList<T: Debug> {
 impl<T: Debug> std::ops::Drop for CdlList<T> {
     fn drop(&mut self) {
         while self.pop_front().is_some() {}
+    }
+}
+
+impl<T: Debug> fmt::Display for CdlList<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.is_empty() {
+            return write!(f, "None");
+        }
+
+        write!(f, "... <=> ")?;
+
+        // get pointer to head
+        let mut node = Rc::clone(&self.head.as_ref().unwrap());
+
+        // print each data point (by using Debug)
+        let mut count: usize = 0;
+        while count < self.size() {
+            {
+                // access reference to data
+                let node_ref = node.borrow();
+                write!(f, "{:?} <=> ", node_ref.data)?;
+            }
+
+            let next = node.as_ref().borrow().next.clone().unwrap();
+            match next {
+                LinkType::StrongLink(sl) => {
+                    node = sl;
+                }, 
+                _ => () // on last iteration, next is a weak link
+            }
+
+            count += 1;
+        }
+
+        write!(f, "...")
     }
 }
 
