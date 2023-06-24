@@ -29,11 +29,30 @@ list.push_front(3); // list = ╔══> 3 <══> 1 <══> 2 <══╗
                     //        ╚═══════════════════════╝
 ```
 
+Additionally, you may use [`cdl_list::CdlList::insert_at()`](https://docs.rs/cdl-list-rs/0.1.0/cdl_list_rs/cdl_list/struct.CdlList.html#method.insert_at) to insert an element into the list at a specific index.
+
+```rust
+                      // list = ╔══> 3 <══> 1 <══> 2 <══╗
+                      //        ╚═══════════════════════╝
+
+list.insert_at(2, 4); // list = ╔══> 3 <══> 1 <══> 4 <══> 2 <══╗
+                      //        ╚══════════════════════════════╝
+
+assert_eq!(list.size(), 4);
+assert_eq!(list.pop_back(), Some(2));
+assert_eq!(list.pop_back(), Some(4));
+assert_eq!(list.pop_back(), Some(1));
+assert_eq!(list.pop_back(), Some(3));
+```
+
 To see which item is at the head or tail of the list, use 
 [`cdl_list::CdlList::peek_front()`](https://docs.rs/cdl-list-rs/0.1.0/cdl_list_rs/cdl_list/struct.CdlList.html#method.peek_front) or [`cdl_list::CdlList::peek_back()`](https://docs.rs/cdl-list-rs/0.1.0/cdl_list_rs/cdl_list/struct.CdlList.html#method.peek_back).  This optionally returns a `Ref<T>`, which can be dereferenced using \* or `clone()`.  This 
 creates a copy of the value and cannot modify the list's contents!
 
 ```rust
+list.push_front(1);
+list.push_back(2);
+list.push_front(3);
 let head_val = *list.peek_front().unwrap();        // head_val = 3
 let tail_val = list.peek_back().unwrap().clone();  // tail_val = 2
 ```
@@ -57,6 +76,19 @@ let last = list.pop_front(); // last = Some(1)
                              // list is empty
 
 let empty = list.pop_back(); // empty = None
+```
+
+Additionally, you may use [`cdl_list::CdlList::remove_at()`](https://docs.rs/cdl-list-rs/0.1.0/cdl_list_rs/cdl_list/struct.CdlList.html#method.remove_at) to remove an element from the list at a specific index.
+
+```rust
+list.push_front(1);
+list.push_back(2);
+list.push_front(3);
+
+// List:  3, 1, 2
+// Index: 0, 1, 2
+
+assert_eq!(list.remove_at(1), Some(1));
 ```
 
 ## References

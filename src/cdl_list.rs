@@ -661,7 +661,29 @@ impl<T: Debug> CdlList<T> {
         self.size += 1;
     }
 
-    /// TODO: Docs
+    /// Removes an element from the specified position, adjusting the existing 
+    /// links and decrementing the size of the list.  Removal point starts 
+    /// from 0, so `remove_at(0, T)` removes the first element from the list, 
+    /// `remove_at(3, T)` removes the fourth element from the list, etc.  The 
+    /// removed element is returned to the user if one exists (i.e. the list is 
+    /// not empty).
+    /// 
+    /// ```rust
+    /// # use cdl_list_rs::cdl_list::CdlList;
+    /// let mut list : CdlList<u32> = CdlList::new();
+    /// list.push_back(1);
+    /// list.push_back(2);
+    /// list.push_back(3);
+    /// list.push_back(4);
+    /// list.push_back(5);
+    /// 
+    /// assert_eq!(list.remove_at(3), Some(4));
+    /// assert_eq!(list.remove_at(2), Some(3));
+    /// assert_eq!(list.remove_at(0), Some(1));
+    /// assert_eq!(list.remove_at(list.size()-1), Some(5));
+    /// 
+    /// assert_eq!(list.size(), 1);
+    /// ```
     pub fn remove_at(&mut self, index: usize) -> Option<T> {
         if index == 0 {
             return self.pop_front();
@@ -674,13 +696,13 @@ impl<T: Debug> CdlList<T> {
             return None;
         }
 
-        // Starting point is based on where deletion point is
-        //      i.e. if deletion point at back, shouldn't start iterating at head
+        // Starting point is based on where removal point is
+        //      i.e. if removal point at back, shouldn't start iterating at head
         let mut node_ref : Rc<RefCell<Node<T>>>;
         let mut count: usize;
         let mid : usize = self.size/2;
 
-        //get the node before deletion point
+        //get the node before removal point
         if index <= mid {
             node_ref = Rc::clone(&self.head.as_ref().unwrap());
 

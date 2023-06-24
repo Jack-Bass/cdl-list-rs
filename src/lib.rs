@@ -31,9 +31,8 @@
 //!                     //        ╚═══════════════════════╝
 //! ```
 //! 
-//! To see which item is at the head or tail of the list, use 
-//! [`cdl_list::CdlList::peek_front()`] or [`cdl_list::CdlList::peek_back()`].  This optionally returns a `Ref<T>`, which can be dereferenced using \* or `clone()`.  This 
-//! creates a copy of the value and cannot modify the list's contents!
+//! Additionally, you may use [`cdl_list::CdlList::insert_at()`] 
+//! to insert an element into the list at a specific index.
 //! 
 //! ```rust
 //! # use cdl_list_rs::cdl_list::CdlList;
@@ -41,6 +40,29 @@
 //! # list.push_front(1);
 //! # list.push_back(2);
 //! # list.push_front(3);
+//!                       // list = ╔══> 3 <══> 1 <══> 2 <══╗
+//!                       //        ╚═══════════════════════╝
+//! 
+//! list.insert_at(2, 4); // list = ╔══> 3 <══> 1 <══> 4 <══> 2 <══╗
+//!                       //        ╚══════════════════════════════╝
+//! 
+//! assert_eq!(list.size(), 4);
+//! assert_eq!(list.pop_back(), Some(2));
+//! assert_eq!(list.pop_back(), Some(4));
+//! assert_eq!(list.pop_back(), Some(1));
+//! assert_eq!(list.pop_back(), Some(3));
+//! ```
+//! 
+//! To see which item is at the head or tail of the list, use 
+//! [`cdl_list::CdlList::peek_front()`] or [`cdl_list::CdlList::peek_back()`].  This optionally returns a `Ref<T>`, which can be dereferenced using \* or `clone()`.  This 
+//! creates a copy of the value and cannot modify the list's contents!
+//! 
+//! ```rust
+//! # use cdl_list_rs::cdl_list::CdlList;
+//! # let mut list : CdlList<u32> = CdlList::new();
+//! list.push_front(1);
+//! list.push_back(2);
+//! list.push_front(3);
 //! let head_val = *list.peek_front().unwrap();        // head_val = 3
 //! let tail_val = list.peek_back().unwrap().clone();  // tail_val = 2
 //! ```
@@ -71,6 +93,22 @@
 //!                              // list is empty
 //! 
 //! let empty = list.pop_back(); // empty = None
+//! ```
+//! 
+//! Additionally, you may use [`cdl_list::CdlList::remove_at()`] 
+//! to remove an element from the list at a specific index.
+//! 
+//! ```rust
+//! # use cdl_list_rs::cdl_list::CdlList;
+//! # let mut list : CdlList<u32> = CdlList::new();
+//! list.push_front(1);
+//! list.push_back(2);
+//! list.push_front(3);
+//! 
+//! // List:  3, 1, 2
+//! // Index: 0, 1, 2
+//! 
+//! assert_eq!(list.remove_at(1), Some(1));
 //! ```
 //! 
 #![warn(missing_docs)]
@@ -290,14 +328,40 @@ mod tests {
         assert_eq!(list.pop_front().unwrap(), 3);
         assert_eq!(list.pop_front().unwrap(), 4);
 
-        //TODO: Insert more tests here
+        //test bounds
+        assert!(list.is_empty());
+        list.push_back(1);
+        list.push_back(2);
+        list.push_back(3);
+
+        list.insert_at(0, 0);
+        list.insert_at(list.size(), 4);
+
+        assert_eq!(list.pop_front().unwrap(), 0);
+        assert_eq!(list.pop_front().unwrap(), 1);
+        assert_eq!(list.pop_front().unwrap(), 2);
+        assert_eq!(list.pop_front().unwrap(), 3);
+        assert_eq!(list.pop_front().unwrap(), 4);
+        assert!(list.is_empty());
+
+        list.push_back(1);
+        assert_eq!(list.size(), 1);
+
+        // invalid additions
+        list.insert_at(list.size()+1, 2);
+        list.insert_at(list.size()+1, 3);
+        list.insert_at(list.size()+1, 4);
+        list.insert_at(list.size()+1, 5);
+
+        assert_eq!(list.size(), 1);
+        assert_eq!(list.pop_back(), Some(1));
     }
 
     #[test]
     fn test_remove_at() {
-        // TODO: test bounds
-
         let mut list : CdlList<u32> = CdlList::new();
+        assert!(list.remove_at(0).is_none());
+
         list.push_back(1);
         list.push_back(2);
         list.push_back(3);
@@ -314,7 +378,39 @@ mod tests {
         // List: 2, 3, 4, 5, 6
 
         assert_eq!(list.remove_at(2), Some(4));
+        assert_eq!(list.size(), 4);
 
-        // TODO: More tests
+        // invalid removal
+        assert!(list.remove_at(list.size()).is_none());
+        assert!(list.remove_at(list.size()+1).is_none());
+    }
+
+    #[test]
+    fn test_insert_and_remove_at() {
+        let mut list : CdlList<u32> = CdlList::new();
+        assert!(list.remove_at(0).is_none());
+
+        //series of insertions and removals
+        list.push_back(1);
+        list.push_back(3);
+        list.push_back(5);
+        list.insert_at(0, 0);
+        list.insert_at(2, 2);
+        assert_eq!(list.remove_at(4), Some(5));
+        list.insert_at(4, 4);
+        
+        //dummy insertions do not insert anything
+        list.insert_at(6, 6);
+        list.insert_at(7, 7);
+
+        assert_eq!(list.size(), 5);
+
+        assert_eq!(list.remove_at(1), Some(1));
+        assert_eq!(list.remove_at(2), Some(3));
+        assert_eq!(list.remove_at(1), Some(2));
+        assert_eq!(list.remove_at(1), Some(4));
+        assert_eq!(list.remove_at(0), Some(0));
+
+        assert!(list.is_empty());
     }
 }
