@@ -44,6 +44,13 @@ struct Node<T: Debug> {
     data: T
 }
 
+impl<T: Debug> std::fmt::Display for Node<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let temp = format!("{:?}", &self.data);
+        f.write_str(&temp)
+    }
+}
+
 impl<T: Debug> Node<T> {
     fn new(t: T) -> Node<T> {
         Self {
@@ -51,13 +58,6 @@ impl<T: Debug> Node<T> {
             prev: None, 
             data: t
         }
-    }
-}
-
-impl<T: Debug> std::fmt::Display for Node<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let temp = format!("{:?}", &self.data);
-        f.write_str(&temp)
     }
 }
 

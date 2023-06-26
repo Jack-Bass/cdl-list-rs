@@ -32,9 +32,6 @@ list.push_front(3); // list = ╔══> 3 <══> 1 <══> 2 <══╗
 Additionally, you may use [`cdl_list::CdlList::insert_at()`](https://docs.rs/cdl-list-rs/0.1.0/cdl_list_rs/cdl_list/struct.CdlList.html#method.insert_at) to insert an element into the list at a specific index.
 
 ```rust
-                      // list = ╔══> 3 <══> 1 <══> 2 <══╗
-                      //        ╚═══════════════════════╝
-
 list.insert_at(2, 4); // list = ╔══> 3 <══> 1 <══> 4 <══> 2 <══╗
                       //        ╚══════════════════════════════╝
 
